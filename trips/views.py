@@ -134,9 +134,36 @@ class UpdateNodeView(APIView):
                 'remaining_hops': len(trip.route_nodes) - next_index - 1,
             })
         else:
-            trip.status = 'completed'
-            trip.save()
-            return Response({'status': 'trip completed'})
+            from requests_app.models import DriverOffer
+            from accounts.models import Wallet, Transaction
+            from decimal import Decimal
+            from django.db import transaction as db_transaction
+
+            confirmed_offers = list(DriverOffer.objects.filter(
+                trip=trip, status='accepted'
+            ).select_related('carpool_request__passenger'))
+
+            total_earned = Decimal('0.00')
+            with db_transaction.atomic():
+                driver_wallet = Wallet.objects.select_for_update().get(user=request.user)
+                for offer in confirmed_offers:
+                    passenger = offer.carpool_request.passenger
+                    fare = Decimal(str(offer.fare))
+                    p_wallet = Wallet.objects.select_for_update().get(user=passenger)
+                    try:
+                        p_wallet.deduct(fare)
+                        Transaction.objects.create(wallet=p_wallet, amount=fare, transaction_type='fare_deduction', description=f'Fare for trip {trip.id}', trip=trip)
+                        driver_wallet.credit(fare)
+                        Transaction.objects.create(wallet=driver_wallet, amount=fare, transaction_type='driver_earning', description=f'Earned from {passenger.username}', trip=trip)
+                        total_earned += fare
+                        offer.carpool_request.status = 'completed'
+                        offer.carpool_request.save()
+                    except ValueError:
+                        pass
+                trip.status = 'completed'
+                trip.save()
+
+            return Response({'status': 'trip completed', 'earned': str(total_earned)})
 
 
 @api_view(['GET'])
