@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Complete signup{% endblock %}
+{% block content %}
+<div style="max-width:440px;margin:40px auto;">
+  <div style="margin-bottom:32px;">
+    <h1 style="margin-bottom:6px;">Almost there</h1>
+    <p class="text-muted">Finish setting up your Google account.</p>
+  </div>
+  <div class="card">
+    <form method="post" action="{% url 'socialaccount_signup' %}">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="input-error">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+      <div class="alert alert-info mt-2">After signup, go to your profile to set your role as Driver or Passenger.</div>
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">Complete signup</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

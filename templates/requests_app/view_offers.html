@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Offers{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Driver offers</h1>
+  <a href="/requests/dashboard/" class="btn btn-ghost btn-sm">Back</a>
+</div>
+<div class="grid-2 mb-4">
+  <div class="card card-sm">
+    <h2>Your request</h2>
+    <p class="mt-2"><span class="text-muted text-sm">From</span> <span class="fw-600">{{ carpool_request.pickup_node }}</span></p>
+    <p class="mt-2"><span class="text-muted text-sm">To</span> <span class="fw-600">{{ carpool_request.dropoff_node }}</span></p>
+    <p class="mt-2"><span class="badge badge-{{ carpool_request.status }}">{{ carpool_request.status }}</span></p>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">Wallet balance</div>
+    <div class="stat-value">${{ wallet.balance }}</div>
+    {% if wallet.balance == 0 %}
+    <a href="/accounts/topup/" class="btn btn-secondary btn-sm" style="margin-top:12px;">Add funds</a>
+    {% endif %}
+  </div>
+</div>
+{% if carpool_request.status == 'confirmed' and accepted_offer %}
+<div class="card" style="border:1px solid var(--green-border);background:var(--green-bg);">
+  <h2 style="color:var(--green);">Ride confirmed</h2>
+  <p class="mt-2"><span class="text-muted text-sm">Driver</span> <span class="fw-600">{{ accepted_offer.trip.driver.username }}</span></p>
+  <p class="mt-2"><span class="text-muted text-sm">Route</span> {{ accepted_offer.trip.start_node }} &rarr; {{ accepted_offer.trip.end_node }}</p>
+  <p class="mt-3 fw-700" style="font-size:22px;color:var(--green);">${{ accepted_offer.fare }}</p>
+  <p class="text-muted text-sm mt-1">Deducted when driver marks the trip complete.</p>
+</div>
+{% elif offers_with_afford %}
+{% for item in offers_with_afford %}
+<div class="card card-sm">
+  <div class="trip-row">
+    <div>
+      <p class="fw-600" style="font-size:15px;">{{ item.offer.trip.driver.username }}</p>
+      <p class="text-muted mt-1">{{ item.offer.trip.start_node }} &rarr; {{ item.offer.trip.end_node }}</p>
+      <p class="text-muted mt-1">{{ item.offer.detour_hops }} extra hop{{ item.offer.detour_hops|pluralize }}</p>
+      <p class="fw-700 mt-2" style="font-size:20px;">${{ item.offer.fare }}</p>
+      {% if not item.can_afford %}<p class="input-error mt-1">Not enough balance &mdash; <a href="/accounts/topup/" style="color:var(--red);">add funds</a></p>{% endif %}
+    </div>
+    <div>
+      {% if item.can_afford %}
+      <a href="/requests/confirm/{{ item.offer.id }}/" class="btn btn-primary" onclick="return confirm('Accept this ride for ${{ item.offer.fare }}?')">Accept offer</a>
+      {% else %}
+      <a href="/accounts/topup/" class="btn btn-secondary btn-sm">Add funds first</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card empty-state">
+  <p>No offers yet</p>
+  <span>Drivers with matching routes will see your request and make an offer.</span>
+  <div class="mt-4"><button onclick="location.reload()" class="btn btn-secondary btn-sm">Refresh</button></div>
+</div>
+{% endif %}
+{% endblock %}

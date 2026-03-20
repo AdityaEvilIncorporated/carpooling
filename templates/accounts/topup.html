@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Add funds{% endblock %}
+{% block content %}
+<div style="max-width:460px;margin:0 auto;">
+  <div class="section-head">
+    <h1>Add funds</h1>
+    <a href="/accounts/wallet/" class="btn btn-ghost btn-sm">Cancel</a>
+  </div>
+  <div class="stat-block mb-4">
+    <div class="stat-label">Current balance</div>
+    <div class="stat-value">${{ wallet.balance }}</div>
+  </div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">
+      <button onclick="document.querySelector('[name=amount]').value='10'" class="btn btn-secondary">$10</button>
+      <button onclick="document.querySelector('[name=amount]').value='25'" class="btn btn-secondary">$25</button>
+      <button onclick="document.querySelector('[name=amount]').value='50'" class="btn btn-secondary">$50</button>
+      <button onclick="document.querySelector('[name=amount]').value='100'" class="btn btn-secondary">$100</button>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="input-error">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;">Add funds</button>
+    </form>
+    <p class="text-muted text-sm mt-4" style="text-align:center;">Demo only — no real payment is processed.</p>
+  </div>
+</div>
+{% endblock %}

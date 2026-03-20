@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Trips{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>My trips</h1>
+  <a href="/trips/create/" class="btn btn-primary">New trip</a>
+</div>
+{% if active_trips %}
+<h3 style="margin-bottom:12px;">Active</h3>
+{% for trip in active_trips %}
+<div class="card card-sm" style="border-left:3px solid var(--green);">
+  <div class="trip-row">
+    <div>
+      <p class="fw-600" style="font-size:15px;letter-spacing:-0.2px;">{{ trip.start_node }} &rarr; {{ trip.end_node }}</p>
+      <p class="text-muted mt-1">Stop {{ trip.current_node_index|add:1 }} of {{ trip.route_nodes|length }} &middot; {{ trip.max_passengers }} max passengers</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="/trips/detail/{{ trip.id }}/" class="btn btn-ghost btn-sm">View</a>
+      <a href="/requests/driver/{{ trip.id }}/" class="btn btn-secondary btn-sm">Requests</a>
+      <a href="/requests/complete-trip/{{ trip.id }}/" class="btn btn-success btn-sm" onclick="return confirm('Complete and charge fares?')">Complete</a>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+{% if pending_trips %}
+<h3 style="margin:20px 0 12px;">Pending</h3>
+{% for trip in pending_trips %}
+<div class="card card-sm" style="border-left:3px solid var(--amber);">
+  <div class="trip-row">
+    <div>
+      <p class="fw-600" style="font-size:15px;letter-spacing:-0.2px;">{{ trip.start_node }} &rarr; {{ trip.end_node }}</p>
+      <p class="text-muted mt-1">{{ trip.route_nodes|length }} stops &middot; {{ trip.max_passengers }} max &middot; {{ trip.created_at|date:"M d, H:i" }}</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="/trips/detail/{{ trip.id }}/" class="btn btn-ghost btn-sm">View</a>
+      <a href="/trips/start/{{ trip.id }}/" class="btn btn-secondary btn-sm">Start</a>
+      <a href="/trips/cancel/{{ trip.id }}/" class="btn btn-danger btn-sm" onclick="return confirm('Cancel this trip?')">Cancel</a>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+{% if past_trips %}
+<h3 style="margin:20px 0 12px;">Past</h3>
+<div class="card" style="padding:0;overflow:hidden;">
+<table>
+  <thead><tr><th>Route</th><th>Status</th><th>Stops</th><th>Date</th><th></th></tr></thead>
+  <tbody>
+  {% for trip in past_trips %}
+  <tr>
+    <td class="fw-600">{{ trip.start_node }} &rarr; {{ trip.end_node }}</td>
+    <td><span class="badge badge-{{ trip.status }}">{{ trip.status }}</span></td>
+    <td>{{ trip.route_nodes|length }}</td>
+    <td>{{ trip.created_at|date:"M d, Y" }}</td>
+    <td><a href="/trips/detail/{{ trip.id }}/" class="btn btn-ghost btn-sm">View</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% if not active_trips and not pending_trips and not past_trips %}
+<div class="card empty-state">
+  <p>No trips yet</p>
+  <span>Add road network nodes in admin first, then create your first trip.</span>
+  <div class="mt-4"><a href="/trips/create/" class="btn btn-primary">Create a trip</a></div>
+</div>
+{% endif %}
+{% endblock %}

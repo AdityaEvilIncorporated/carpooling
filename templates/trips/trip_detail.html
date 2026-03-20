@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Trip detail{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Trip detail</h1>
+  <a href="/trips/dashboard/" class="btn btn-ghost btn-sm">Back</a>
+</div>
+<div class="card card-sm mb-4">
+  <div class="trip-row">
+    <div>
+      <p class="fw-600" style="font-size:18px;letter-spacing:-0.4px;">{{ trip.start_node }} &rarr; {{ trip.end_node }}</p>
+      <div class="flex gap-2 mt-2">
+        <span class="badge badge-{{ trip.status }}">{{ trip.status }}</span>
+        <span class="text-muted text-sm">{{ trip.max_passengers }} max &middot; {{ passenger_count }} confirmed</span>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      {% if trip.status == 'pending' %}
+      <a href="/trips/start/{{ trip.id }}/" class="btn btn-secondary">Start trip</a>
+      <a href="/trips/cancel/{{ trip.id }}/" class="btn btn-danger btn-sm" onclick="return confirm('Cancel?')">Cancel</a>
+      {% elif trip.status == 'active' %}
+      <a href="/requests/driver/{{ trip.id }}/" class="btn btn-secondary">Manage requests</a>
+      <a href="/requests/complete-trip/{{ trip.id }}/" class="btn btn-success" onclick="return confirm('Complete trip and charge fares?')">Complete</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div class="card">
+  <h2>Route</h2>
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px;">
+  {% for idx, node, passed in all_nodes %}
+    {% if node %}
+      <span class="pill {% if idx == trip.current_node_index %}pill-active{% elif passed %}pill-passed{% endif %}">{{ node.name }}</span>
+      {% if not forloop.last %}<span style="color:var(--border-strong);font-size:12px;">&rsaquo;</span>{% endif %}
+    {% endif %}
+  {% endfor %}
+  </div>
+  {% if trip.status == 'active' %}
+  <div class="flex gap-3 mt-4">
+    <button onclick="advanceNode()" class="btn btn-primary btn-sm">Mark arrived at next stop</button>
+    <span id="node-msg" style="font-size:13px;color:var(--green);"></span>
+  </div>
+  {% endif %}
+</div>
+{% if accepted_offers %}
+<div class="card" style="padding:0;overflow:hidden;">
+  <div style="padding:20px 24px 0;"><h2>Confirmed passengers ({{ passenger_count }})</h2></div>
+  <table>
+    <thead><tr><th>Passenger</th><th>Pickup</th><th>Dropoff</th><th>Fare</th></tr></thead>
+    <tbody>
+    {% for offer in accepted_offers %}
+    <tr>
+      <td class="fw-600">{{ offer.carpool_request.passenger.username }}</td>
+      <td>{{ offer.carpool_request.pickup_node }}</td>
+      <td>{{ offer.carpool_request.dropoff_node }}</td>
+      <td class="fw-600 text-green">${{ offer.fare }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% if offered_offers %}
+<div class="card" style="padding:0;overflow:hidden;">
+  <div style="padding:20px 24px 0;"><h2>Awaiting passenger response</h2></div>
+  <table>
+    <thead><tr><th>Passenger</th><th>Pickup</th><th>Dropoff</th><th>Fare</th><th></th></tr></thead>
+    <tbody>
+    {% for offer in offered_offers %}
+    <tr>
+      <td>{{ offer.carpool_request.passenger.username }}</td>
+      <td>{{ offer.carpool_request.pickup_node }}</td>
+      <td>{{ offer.carpool_request.dropoff_node }}</td>
+      <td>${{ offer.fare }}</td>
+      <td><a href="/requests/withdraw/{{ offer.id }}/" class="btn btn-danger btn-sm" onclick="return confirm('Withdraw?')">Withdraw</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+<script>
+function advanceNode() {
+  var btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Updating...';
+  fetch('/trips/api/update-node/{{ trip.id }}/', {
+    method: 'POST',
+    headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json'}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (data.status === 'trip completed') {
+      document.getElementById('node-msg').textContent = 'Trip completed';
+      setTimeout(function(){ location.href = '/trips/dashboard/'; }, 1200);
+    } else {
+      document.getElementById('node-msg').textContent = 'At: ' + data.current_node + ' (' + data.remaining_hops + ' remaining)';
+      setTimeout(function(){ location.reload(); }, 1000);
+    }
+  })
+  .catch(function(){ btn.disabled = false; btn.textContent = 'Mark arrived at next stop'; });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<div style="max-width:400px;margin:40px auto;">
+  <div style="margin-bottom:32px;">
+    <h1 style="margin-bottom:6px;">Sign in</h1>
+    <p class="text-muted">Welcome back to Carpool.</p>
+  </div>
+  <div class="card">
+    <a href="/accounts/google/login/" class="btn btn-secondary btn-lg" style="width:100%;margin-bottom:20px;">Continue with Google</a>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span class="text-muted text-sm">or</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" class="form-control" placeholder="your username" required autofocus>
+      </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Password</label>
+        <input type="password" name="password" class="form-control" placeholder="your password" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">Sign in</button>
+    </form>
+  </div>
+  <p class="text-muted text-sm mt-4" style="text-align:center;">
+    No account? <a href="/accounts/register/" style="color:var(--text);font-weight:500;">Create one</a>
+  </p>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Request{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Request detail</h1>
+  <a href="/requests/dashboard/" class="btn btn-ghost btn-sm">Back</a>
+</div>
+<div class="card card-sm mb-4">
+  <p class="fw-600">{{ carpool_request.pickup_node }} &rarr; {{ carpool_request.dropoff_node }}</p>
+  <div class="flex gap-2 mt-2">
+    <span class="badge badge-{{ carpool_request.status }}">{{ carpool_request.status }}</span>
+    <span class="text-muted text-sm">{{ carpool_request.created_at|date:"M d, H:i" }}</span>
+  </div>
+</div>
+<h2 style="margin-bottom:12px;">All offers</h2>
+{% for offer in all_offers %}
+<div class="card card-sm">
+  <div class="trip-row">
+    <div>
+      <p class="fw-600">{{ offer.trip.driver.username }} <span class="badge badge-{{ offer.status }}" style="margin-left:6px;">{{ offer.status }}</span></p>
+      <p class="text-muted mt-1">{{ offer.trip.start_node }} &rarr; {{ offer.trip.end_node }}</p>
+      <p class="fw-600 mt-2" style="font-size:18px;">${{ offer.fare }}</p>
+    </div>
+    {% if offer.status == 'offered' and carpool_request.status == 'pending' %}
+    <a href="/requests/confirm/{{ offer.id }}/" class="btn btn-primary btn-sm" onclick="return confirm('Accept for ${{ offer.fare }}?')">Accept</a>
+    {% endif %}
+  </div>
+</div>
+{% empty %}
+<div class="card empty-state"><span>No offers yet.</span></div>
+{% endfor %}
+{% endblock %}

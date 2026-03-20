@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Profile</h1>
+  <div class="flex gap-2">
+    {% if user.is_driver %}
+    <a href="/trips/dashboard/" class="btn btn-secondary">My trips</a>
+    {% else %}
+    <a href="/requests/dashboard/" class="btn btn-secondary">My requests</a>
+    {% endif %}
+    <a href="/accounts/wallet/" class="btn btn-secondary">Wallet</a>
+  </div>
+</div>
+<div class="grid-2 mb-4">
+  <div class="card">
+    <h2>Account</h2>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <div class="text-muted text-sm mb-1">Username</div>
+        <div class="fw-600">{{ user.username }}</div>
+      </div>
+      <div>
+        <div class="text-muted text-sm mb-1">Email</div>
+        <div>{{ user.email|default:"—" }}</div>
+      </div>
+      <div>
+        <div class="text-muted text-sm mb-1">Role</div>
+        <span class="badge badge-{% if user.is_driver %}active{% else %}confirmed{% endif %}">{{ user.role }}</span>
+      </div>
+      <div>
+        <div class="text-muted text-sm mb-1">Member since</div>
+        <div>{{ user.date_joined|date:"M d, Y" }}</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <h2>Change role</h2>
+    <p class="text-muted mb-2" style="font-size:12px;">Use this if you signed up with Google and need to switch.</p>
+    <form method="post" action="/accounts/change-role/" style="display:flex;gap:8px;">
+      {% csrf_token %}
+      {{ role_form.role }}
+      <button type="submit" class="btn btn-secondary btn-sm">Save</button>
+    </form>
+  </div>
+  <div class="stat-block" style="display:flex;flex-direction:column;justify-content:space-between;">
+    <div>
+      <div class="stat-label">Wallet balance</div>
+      <div class="stat-value">${{ wallet.balance }}</div>
+    </div>
+    {% if not user.is_driver %}
+    <a href="/accounts/topup/" class="btn btn-primary btn-sm" style="margin-top:16px;align-self:flex-start;">Add funds</a>
+    {% else %}
+    <p class="text-muted" style="font-size:12px;margin-top:16px;">Earnings are added automatically when you complete a trip.</p>
+    {% endif %}
+  </div>
+</div>
+<div class="card" style="padding:0;overflow:hidden;">
+  <div class="section-head" style="padding:20px 24px 0;">
+    <h2>Recent transactions</h2>
+    <a href="/accounts/wallet/" class="btn btn-ghost btn-sm">View all</a>
+  </div>
+  {% if transactions %}
+  <table>
+    <thead><tr><th>Type</th><th>Amount</th><th>Note</th><th>Date</th></tr></thead>
+    <tbody>
+    {% for tx in transactions %}
+    <tr>
+      <td><span class="badge badge-{% if tx.transaction_type == 'topup' %}active{% elif tx.transaction_type == 'fare_deduction' %}cancelled{% elif tx.transaction_type == 'driver_earning' %}confirmed{% else %}pending{% endif %}">{{ tx.get_transaction_type_display }}</span></td>
+      <td class="fw-600 {% if tx.transaction_type == 'fare_deduction' %}text-red{% else %}text-green{% endif %}">{% if tx.transaction_type == 'fare_deduction' %}-{% else %}+{% endif %}${{ tx.amount }}</td>
+      <td>{{ tx.description }}</td>
+      <td>{{ tx.created_at|date:"M d, H:i" }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><span>No transactions yet.</span></div>
+  {% endif %}
+</div>
+{% endblock %}

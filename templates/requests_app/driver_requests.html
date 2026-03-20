@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Carpool requests{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Carpool requests</h1>
+  <a href="/trips/detail/{{ trip.id }}/" class="btn btn-ghost btn-sm">Back to trip</a>
+</div>
+<div class="grid-2 mb-4">
+  <div class="card card-sm">
+    <p class="fw-600">{{ trip.start_node }} &rarr; {{ trip.end_node }}</p>
+    <p class="text-muted mt-1">{{ remaining_nodes|length }} stops remaining &middot; {{ my_accepted|length }} confirmed</p>
+    <span class="badge badge-{{ trip.status }} mt-2">{{ trip.status }}</span>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">Driver wallet</div>
+    <div class="stat-value">${{ driver_wallet.balance }}</div>
+  </div>
+</div>
+{% if my_accepted %}
+<h3 style="margin-bottom:12px;">Confirmed passengers</h3>
+{% for offer in my_accepted %}
+<div class="card card-sm" style="border-left:3px solid var(--green);">
+  <div class="flex-between">
+    <div>
+      <p class="fw-600">{{ offer.carpool_request.passenger.username }}</p>
+      <p class="text-muted mt-1">{{ offer.carpool_request.pickup_node }} &rarr; {{ offer.carpool_request.dropoff_node }}</p>
+    </div>
+    <p class="fw-700 text-green" style="font-size:18px;">${{ offer.fare }}</p>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+<h3 style="margin:20px 0 12px;">Nearby requests</h3>
+{% if request_data %}
+{% for item in request_data %}
+<div class="card card-sm">
+  <div class="trip-row">
+    <div>
+      <p class="fw-600">{{ item.request.passenger.username }}</p>
+      <p class="text-muted mt-1">{{ item.request.pickup_node }} &rarr; {{ item.request.dropoff_node }}</p>
+      <p class="text-muted mt-1">{{ item.detour }} extra hop{{ item.detour|pluralize }}</p>
+      {% if not item.can_afford %}<p class="input-error mt-1">Passenger has low balance</p>{% endif %}
+      {% if item.fare %}
+      <p class="fw-700 mt-2" style="font-size:17px;">You earn: ${{ item.fare }}</p>
+      {% else %}
+      <p class="text-muted mt-2">Not on your direct route</p>
+      {% endif %}
+    </div>
+    <div>
+      {% if item.already_offered %}
+      <span class="badge badge-confirmed">Offer sent</span>
+      {% elif item.fare and item.can_afford %}
+      <a href="/requests/offer/{{ item.request.id }}/trip/{{ trip.id }}/" class="btn btn-primary btn-sm" onclick="return confirm('Offer ${{ item.fare }} to {{ item.request.passenger.username }}?')">Make offer</a>
+      {% elif item.fare %}
+      <span class="text-muted text-sm">Can&rsquo;t afford</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card empty-state">
+  <span>No requests within 2 hops of your remaining route.</span>
+  <div class="mt-4"><button onclick="location.reload()" class="btn btn-secondary btn-sm">Refresh</button></div>
+</div>
+{% endif %}
+{% if my_offered %}
+<h3 style="margin:20px 0 12px;">Awaiting response</h3>
+<div class="card" style="padding:0;overflow:hidden;">
+<table>
+  <thead><tr><th>Passenger</th><th>From</th><th>To</th><th>Fare</th><th></th></tr></thead>
+  <tbody>
+  {% for offer in my_offered %}
+  <tr>
+    <td class="fw-600">{{ offer.carpool_request.passenger.username }}</td>
+    <td>{{ offer.carpool_request.pickup_node }}</td>
+    <td>{{ offer.carpool_request.dropoff_node }}</td>
+    <td class="fw-600 text-green">${{ offer.fare }}</td>
+    <td><a href="/requests/withdraw/{{ offer.id }}/" class="btn btn-danger btn-sm" onclick="return confirm('Withdraw?')">Withdraw</a></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% if my_rejected %}
+<h3 style="margin:20px 0 12px;">Declined</h3>
+<div class="card" style="padding:0;overflow:hidden;">
+<table>
+  <thead><tr><th>Passenger</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for offer in my_rejected %}
+  <tr><td>{{ offer.carpool_request.passenger.username }}</td><td><span class="badge badge-rejected">Rejected</span></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Live trips{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Live trips</h1>
+  <a href="/network/graph/" class="btn btn-ghost btn-sm">Network</a>
+</div>
+<div class="stat-block mb-4" style="display:inline-block;min-width:160px;">
+  <div class="stat-label">Active right now</div>
+  <div class="stat-value">{{ total }}</div>
+</div>
+{% if trip_data %}
+{% for item in trip_data %}
+<div class="card card-sm">
+  <div class="trip-row">
+    <div>
+      <p class="fw-600" style="font-size:15px;">{{ item.trip.driver.username }}</p>
+      <p class="text-muted mt-1">{{ item.trip.start_node }} &rarr; {{ item.trip.end_node }}</p>
+      <p class="text-muted mt-1">At <strong style="color:var(--text);">{{ item.current_node_name }}</strong> &middot; Stop {{ item.trip.current_node_index|add:1 }}/{{ item.trip.route_nodes|length }} &middot; {{ item.remaining_hops }} left</p>
+    </div>
+    <div style="text-align:right;">
+      <span class="badge badge-active">active</span>
+      <p class="text-muted text-sm mt-2">{{ item.confirmed_passengers }}/{{ item.trip.max_passengers }} passengers</p>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card empty-state"><span>No active trips right now.</span></div>
+{% endif %}
+{% endblock %}

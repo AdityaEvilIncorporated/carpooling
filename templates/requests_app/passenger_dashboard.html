@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Requests{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>My requests</h1>
+  <div class="flex gap-2">
+    <a href="/accounts/wallet/" class="btn btn-ghost btn-sm">${{ wallet.balance }}</a>
+    <a href="/requests/submit/" class="btn btn-primary">New request</a>
+  </div>
+</div>
+{% if confirmed_requests %}
+<h3 style="margin-bottom:12px;">Confirmed rides</h3>
+{% for req in confirmed_requests %}
+<div class="card card-sm" style="border-left:3px solid var(--green);">
+  <div class="trip-row">
+    <div>
+      <p class="fw-600" style="font-size:15px;">{{ req.pickup_node }} &rarr; {{ req.dropoff_node }}</p>
+      {% if req.confirmed_offer %}
+      <p class="text-muted mt-1">Driver: <span class="fw-600" style="color:var(--text);">{{ req.confirmed_offer.trip.driver.username }}</span></p>
+      <p class="mt-2 fw-700 text-green" style="font-size:18px;">${{ req.confirmed_offer.fare }}</p>
+      <p class="text-muted text-sm mt-1">Charged when driver completes the trip</p>
+      {% endif %}
+    </div>
+    <div class="flex gap-2">
+      <span class="badge badge-confirmed">Confirmed</span>
+      <a href="/requests/cancel/{{ req.id }}/" class="btn btn-danger btn-sm" onclick="return confirm('Cancel this ride?')">Cancel</a>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+{% if pending_requests %}
+<h3 style="margin:20px 0 12px;">Pending</h3>
+{% for req in pending_requests %}
+<div class="card card-sm" style="border-left:3px solid var(--amber);">
+  <div class="trip-row">
+    <div>
+      <p class="fw-600" style="font-size:15px;">{{ req.pickup_node }} &rarr; {{ req.dropoff_node }}</p>
+      <p class="text-muted mt-1">{{ req.created_at|date:"M d, H:i" }} &middot;
+        {% with count=req.offers.count %}
+        {% if count %}<span style="color:var(--green);font-weight:600;">{{ count }} offer{{ count|pluralize }}</span>
+        {% else %}waiting for drivers{% endif %}
+        {% endwith %}
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <a href="/requests/offers/{{ req.id }}/" class="btn btn-secondary btn-sm">View offers{% with count=req.offers.count %}{% if count %} ({{ count }}){% endif %}{% endwith %}</a>
+      <a href="/requests/cancel/{{ req.id }}/" class="btn btn-danger btn-sm" onclick="return confirm('Cancel?')">Cancel</a>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+{% if past_requests %}
+<h3 style="margin:20px 0 12px;">Past</h3>
+<div class="card" style="padding:0;overflow:hidden;">
+<table>
+  <thead><tr><th>From</th><th>To</th><th>Status</th><th>Driver</th><th>Fare</th><th>Date</th></tr></thead>
+  <tbody>
+  {% for req in past_requests %}
+  <tr>
+    <td>{{ req.pickup_node }}</td>
+    <td>{{ req.dropoff_node }}</td>
+    <td><span class="badge badge-{{ req.status }}">{{ req.status }}</span></td>
+    <td>{% if req.confirmed_offer %}{{ req.confirmed_offer.trip.driver.username }}{% else %}—{% endif %}</td>
+    <td>{% if req.confirmed_offer %}<span class="fw-600 text-green">${{ req.confirmed_offer.fare }}</span>{% else %}—{% endif %}</td>
+    <td>{{ req.created_at|date:"M d, Y" }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% if not confirmed_requests and not pending_requests and not past_requests %}
+<div class="card empty-state">
+  <p>No requests yet</p>
+  {% if wallet.balance == 0 %}
+  <span>Add funds to your wallet first so you can pay for rides.</span>
+  <div class="mt-4"><a href="/accounts/topup/" class="btn btn-secondary">Add funds</a></div>
+  {% else %}
+  <span>Submit a request to find a driver.</span>
+  <div class="mt-4"><a href="/requests/submit/" class="btn btn-primary">Request a ride</a></div>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Wallet{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Wallet</h1>
+  {% if not user.is_driver %}
+  <a href="/accounts/topup/" class="btn btn-primary">Add funds</a>
+  {% endif %}
+</div>
+<div class="grid-2 mb-4">
+  <div class="stat-block">
+    <div class="stat-label">Balance</div>
+    <div class="stat-value">${{ wallet.balance }}</div>
+  </div>
+  <div class="row">
+    <div class="stat-block">
+      <div class="stat-label">Total in</div>
+      <div class="stat-value" style="font-size:20px;color:var(--green);">+${{ total_in }}</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-label">Total out</div>
+      <div class="stat-value" style="font-size:20px;color:var(--red);">-${{ total_out }}</div>
+    </div>
+  </div>
+</div>
+<div class="card" style="padding:0;overflow:hidden;">
+  <div style="padding:20px 24px 0;"><h2>Transaction history</h2></div>
+  {% if transactions %}
+  <table>
+    <thead><tr><th>Type</th><th>Amount</th><th>Note</th><th>Trip</th><th>Date</th></tr></thead>
+    <tbody>
+    {% for tx in transactions %}
+    <tr>
+      <td><span class="badge badge-{% if tx.transaction_type == 'topup' %}active{% elif tx.transaction_type == 'fare_deduction' %}cancelled{% elif tx.transaction_type == 'driver_earning' %}confirmed{% else %}pending{% endif %}">{{ tx.get_transaction_type_display }}</span></td>
+      <td class="fw-600 {% if tx.transaction_type == 'fare_deduction' %}text-red{% else %}text-green{% endif %}">{% if tx.transaction_type == 'fare_deduction' %}-{% else %}+{% endif %}${{ tx.amount }}</td>
+      <td>{{ tx.description }}</td>
+      <td>{% if tx.trip %}#{{ tx.trip.id }}{% else %}—{% endif %}</td>
+      <td>{{ tx.created_at|date:"M d, H:i" }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><span>No transactions yet.</span></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Network{% endblock %}
+{% block content %}
+<div class="section-head">
+  <h1>Road network</h1>
+  <div class="flex gap-2">
+    <a href="/network/active-trips/" class="btn btn-secondary btn-sm">Live trips</a>
+    <a href="/admin/network/node/add/" class="btn btn-secondary btn-sm">Add node</a>
+    <a href="/admin/network/edge/add/" class="btn btn-secondary btn-sm">Add edge</a>
+    <a href="/admin/network/sitesettings/" class="btn btn-ghost btn-sm">Settings</a>
+  </div>
+</div>
+<div class="grid-2">
+  <div class="card">
+    <h2>Nodes <span class="text-muted" style="font-weight:400;">{{ nodes.count }}</span></h2>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;">
+    {% for node in nodes %}
+      <span class="pill">{{ node.name }}</span>
+    {% empty %}
+      <p class="text-muted">No nodes yet. <a href="/admin/network/node/add/" style="color:var(--text);">Add one in admin.</a></p>
+    {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <h2>Edges <span class="text-muted" style="font-weight:400;">{{ edges.count }}</span></h2>
+    <div style="max-height:200px;overflow-y:auto;margin-top:12px;display:flex;flex-direction:column;gap:6px;">
+    {% for edge in edges %}
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="pill">{{ edge.from_node.name }}</span>
+        <span style="color:var(--text-3);font-size:12px;">&rarr;</span>
+        <span class="pill">{{ edge.to_node.name }}</span>
+      </div>
+    {% empty %}
+      <p class="text-muted">No edges yet. <a href="/admin/network/edge/add/" style="color:var(--text);">Add one in admin.</a></p>
+    {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

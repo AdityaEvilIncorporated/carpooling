@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}New request{% endblock %}
+{% block content %}
+<div style="max-width:480px;margin:0 auto;">
+  <div style="margin-bottom:24px;">
+    <h1 style="margin-bottom:6px;">Request a ride</h1>
+    <p class="text-muted">Tell us where you are and where you want to go.</p>
+  </div>
+  {% if wallet.balance == 0 %}
+  <div class="alert alert-warning mb-4">Your wallet is empty. You can submit but will need to <a href="/accounts/topup/" style="font-weight:600;color:var(--amber);">add funds</a> before accepting an offer.</div>
+  {% else %}
+  <div class="stat-block mb-4">
+    <div class="stat-label">Wallet balance</div>
+    <div class="stat-value">${{ wallet.balance }}</div>
+  </div>
+  {% endif %}
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="input-error">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+      {% for error in form.non_field_errors %}<p class="input-error mb-2">{{ error }}</p>{% endfor %}
+      <div class="flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">Submit request</button>
+        <a href="/requests/dashboard/" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
