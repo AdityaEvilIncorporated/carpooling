@@ -9,9 +9,9 @@ services:
       - key: DEBUG
         value: "False"
       - key: ALLOWED_HOSTS
-        value: "carpooling.onrender.com,mycarpooling.com,www.mycarpooling.com"
+        value: "carpooling.onrender.com,adityaevilincorporated.me.,adityaevilincorporated.me."
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://carpooling.onrender.com,https://mycarpooling.com,https://www.mycarpooling.com"
+        value: "https://carpooling.onrender.com,https://adityaevilincorporated.me.,https://adityaevilincorporated.me."
       - key: DATABASE_URL
         fromDatabase:
           name: carpooling-db
