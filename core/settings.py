@@ -140,9 +140,8 @@ SITE_ID = 1
 
 ACCOUNT_ADAPTER = 'accounts.adapter.AccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'accounts.adapter.SocialAccountAdapter'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGIN_REDIRECT_URL = '/accounts/profile/'
 ACCOUNT_SIGNUP_REDIRECT_URL = '/accounts/profile/'
