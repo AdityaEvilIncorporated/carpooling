@@ -6,4 +6,4 @@ pip install -r requirements.txt
 python manage.py collectstatic --noinput
 python manage.py migrate
 python manage.py createsuperuser --noinput || true
-python manage.py setup_google --domain ${DOMAIN:-adityaevilincorporated.me}
+python manage.py setup_google --domain mycarpooling.com
