@@ -12,8 +12,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-this-please-123')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost').split(',')
+
+# Parse ALLOWED_HOSTS from env, fallback to localhost
+_allowed = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = [h.strip() for h in _allowed.split(',') if h.strip()]
+
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get(
+        'CSRF_TRUSTED_ORIGINS',
+        'http://localhost,http://127.0.0.1'
+    ).split(',')
+    if o.strip()
+]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -66,6 +78,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+# Database — priority: DATABASE_URL > individual DB_* vars > SQLite fallback
 if os.environ.get('DATABASE_URL'):
     DATABASES = {
         'default': dj_database_url.config(
@@ -157,3 +170,10 @@ REST_FRAMEWORK = {
 
 FARE_UNIT_PRICE = float(os.environ.get('FARE_UNIT_PRICE', '5.0'))
 FARE_BASE_FEE = float(os.environ.get('FARE_BASE_FEE', '2.0'))
+
+# Security settings for production
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
